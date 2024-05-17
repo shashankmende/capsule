@@ -16,6 +16,38 @@ class CapsuleItem extends Component {
     companiesList: [],
   };
   //   const eachItem = props.eachItem;
+
+  updatingPackages = (e, givenStrength) => {
+    // console.log("e from new function", e);
+    const { selectedPackage, forms, eachItem } = this.state;
+    const { salt_forms_json } = eachItem;
+    const result = Object.keys(salt_forms_json);
+    const filteredList1 = result.map((each) => {
+      if (each === forms) {
+        return salt_forms_json[each];
+      }
+      return "";
+    });
+
+    // console.log("filteredlist1", filteredList1);
+
+    for (let each of filteredList1) {
+      if (each !== "") {
+        for (const [key, value] of Object.entries(each)) {
+          console.log("key", key, "selected strength", givenStrength);
+          if (key === givenStrength) {
+            for (const [nkey, nvalue] of Object.entries(value)) {
+              if (nkey === e) {
+                // console.log("nkey", nkey, "nvalue", nvalue);
+                return nvalue;
+              }
+            }
+          }
+        }
+      }
+    }
+  };
+
   componentDidMount() {
     const { strengthsList, eachItem, forms, selectedStrength } = this.state;
     const { salt_forms_json } = eachItem;
@@ -36,12 +68,19 @@ class CapsuleItem extends Component {
         const packagesList = Object.keys(destructedStrength);
         // console.log("kd", packagesList);
 
+        const companiesList = this.updatingPackages(
+          packagesList[0],
+          strengthKeyArray[0]
+        );
+        console.log("companies list", companiesList);
+
         const packagesObject = each[1];
         this.setState({
           strengthsList: strengthKeyArray,
           selectedStrength: strengthKeyArray[0],
           packagesList,
           selectedPackage: packagesList[0],
+          companiesList,
         });
       }
       return "";
@@ -109,36 +148,9 @@ class CapsuleItem extends Component {
   };
 
   onClickPackageButtons = (e) => {
-    const { selectedPackage, selectedStrength, forms, eachItem } = this.state;
-    const { salt_forms_json } = eachItem;
-    const result = Object.keys(salt_forms_json);
-    const filteredList1 = result.map((each) => {
-      if (each === forms) {
-        return salt_forms_json[each];
-      }
-      return "";
+    this.setState({
+      selectedPackage: e.target.value,
     });
-
-    // console.log("filteredlist1", filteredList1);
-    let requiredData = null;
-    for (let each of filteredList1) {
-      if (each !== "") {
-        for (const [key, value] of Object.entries(each)) {
-          //   console.log(key === selectedStrength);
-          if (key === selectedStrength) {
-            for (const [nkey, nvalue] of Object.entries(value)) {
-              if (nkey === e.target.value) {
-                console.log("nkey", nkey, "nvalue", nvalue);
-                this.setState({
-                  selectedPackage: e.target.value,
-                  companiesList: nvalue,
-                });
-              }
-            }
-          }
-        }
-      }
-    }
   };
 
   returnStrengthButtons = () => {
