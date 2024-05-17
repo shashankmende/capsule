@@ -13,13 +13,15 @@ class CapsuleItem extends Component {
     packagesList: [],
     expandStrengths: false,
     expandForms: false,
+    expandPackage: false,
     companiesList: [],
+    lowestPriceAndAvailability: "",
   };
   //   const eachItem = props.eachItem;
 
-  updatingPackages = (e, givenStrength) => {
+  updatingPackages = (givePackage, givenStrength) => {
     // console.log("e from new function", e);
-    const { selectedPackage, forms, eachItem } = this.state;
+    const { forms, eachItem } = this.state;
     const { salt_forms_json } = eachItem;
     const result = Object.keys(salt_forms_json);
     const filteredList1 = result.map((each) => {
@@ -34,10 +36,10 @@ class CapsuleItem extends Component {
     for (let each of filteredList1) {
       if (each !== "") {
         for (const [key, value] of Object.entries(each)) {
-          console.log("key", key, "selected strength", givenStrength);
+          //   console.log("key", key, "selected strength", givenStrength);
           if (key === givenStrength) {
             for (const [nkey, nvalue] of Object.entries(value)) {
-              if (nkey === e) {
+              if (nkey === givePackage) {
                 // console.log("nkey", nkey, "nvalue", nvalue);
                 return nvalue;
               }
@@ -48,8 +50,23 @@ class CapsuleItem extends Component {
     }
   };
 
+  returnLowestPrice = (cmpLst) => {
+    // const numberOfCompanies = Object.keys(cmpLst).length;
+    // console.log("number of compaies", numberOfCompanies);
+    const isAvailable = Object.values(cmpLst).every((each) => each === null);
+    console.log("is available", isAvailable);
+    let priceList = [];
+    for (const values of Object.values(cmpLst)) {
+      if (values !== null && values !== [] && !isAvailable) {
+        // console.log("key", key, "list", values);
+        values.forEach((each) => priceList.push(each.selling_price));
+      }
+    }
+    return [priceList, isAvailable];
+  };
+
   componentDidMount() {
-    const { strengthsList, eachItem, forms, selectedStrength } = this.state;
+    const { eachItem, forms } = this.state;
     const { salt_forms_json } = eachItem;
 
     var result = Object.keys(salt_forms_json).map((key) => [
@@ -74,13 +91,19 @@ class CapsuleItem extends Component {
         );
         console.log("companies list", companiesList);
 
-        const packagesObject = each[1];
+        const lowestPriceAndAvailability = this.returnLowestPrice(
+          companiesList
+        );
+        // console.log("lowest price", lowestPriceAndAvailability);
+        // console.log("companies list", companiesList);
+
         this.setState({
           strengthsList: strengthKeyArray,
           selectedStrength: strengthKeyArray[0],
           packagesList,
           selectedPackage: packagesList[0],
           companiesList,
+          lowestPriceAndAvailability,
         });
       }
       return "";
@@ -119,6 +142,7 @@ class CapsuleItem extends Component {
     this.setState({
       forms: e.target.value,
       strengthsList: Object.keys(newFilteredStrengthsList[0][1]),
+      selectedStrength: Object.keys(newFilteredStrengthsList[0][1])[0],
     });
   };
 
@@ -141,22 +165,47 @@ class CapsuleItem extends Component {
       filteredResult[0][1][`${e.target.value}`]
     );
 
+    const companiesList = this.updatingPackages(
+      newPackagesList[0],
+      e.target.value
+    );
+    const lowestPriceAndAvailability = this.returnLowestPrice(companiesList);
+
     this.setState({
       selectedStrength: e.target.value,
       packagesList: newPackagesList,
+      selectedPackage: newPackagesList[0],
+      lowestPriceAndAvailability,
     });
   };
 
-  onClickPackageButtons = (e) => {
+  onClickPackageButton = (e) => {
+    const { selectedStrength } = this.state;
+
+    const companiesList = this.updatingPackages(
+      e.target.value,
+      selectedStrength
+    );
+
+    const lowestPriceAndAvailability = this.returnLowestPrice(companiesList);
+
     this.setState({
       selectedPackage: e.target.value,
+      companiesList,
+      lowestPriceAndAvailability,
     });
+  };
+
+  onClickPageExpandButton = () => {
+    this.setState((prevState) => ({
+      expandPackage: !prevState.expandPackage,
+    }));
   };
 
   returnStrengthButtons = () => {
-    const { strengthsList, expandStrengths } = this.state;
-    if (strengthsList.length > 4) {
-      const slicedStrengthsList = strengthsList.slice(0, 4);
+    const { strengthsList, expandStrengths, selectedStrength } = this.state;
+    if (strengthsList.length > 3) {
+      const slicedStrengthsList = strengthsList.slice(0, 3);
 
       const newStrengthsList = expandStrengths
         ? strengthsList
@@ -165,17 +214,25 @@ class CapsuleItem extends Component {
       //   console.log("new strenths list", slicedStrengthsList);
       return (
         <div>
-          {newStrengthsList.map((each) => (
-            <button
-              key={each}
-              type="button"
-              onClick={this.onClickStrengthButton}
-              value={each}
-            >
-              {each}
-            </button>
-          ))}
-          <button type="button" onClick={this.onClickStrengthsExpandableButton}>
+          {newStrengthsList.map((each) => {
+            const selectedCss = each === selectedStrength ? "active-css" : "";
+            return (
+              <button
+                key={each}
+                type="button"
+                onClick={this.onClickStrengthButton}
+                value={each}
+                className={`${selectedCss}`}
+              >
+                {each}
+              </button>
+            );
+          })}
+          <button
+            type="button"
+            className="more-hide-button"
+            onClick={this.onClickStrengthsExpandableButton}
+          >
             {expandText}
           </button>
         </div>
@@ -183,15 +240,25 @@ class CapsuleItem extends Component {
     }
     return (
       <div>
-        {strengthsList.map((each) => (
-          <button key={each}>{each}</button>
-        ))}
+        {strengthsList.map((each) => {
+          const selectedCss = each === selectedStrength ? "active-css" : "";
+
+          return (
+            <button
+              key={each}
+              onClick={this.onClickStrengthButton}
+              className={`${selectedCss}`}
+              value={each}
+            >
+              {each}
+            </button>
+          );
+        })}
       </div>
     );
   };
 
   returnStrengths = () => {
-    const { eachItem, strengthsList } = this.state;
     return (
       <div className="items-strengths-container">
         <p>Strength:</p>
@@ -201,22 +268,36 @@ class CapsuleItem extends Component {
   };
 
   returnFormButtons = () => {
-    const { formsList, expandForms } = this.state;
+    const { formsList, expandForms, forms } = this.state;
 
-    if (formsList.length > 4) {
-      const slicedStrengthsList = formsList.slice(0, 4);
+    if (formsList.length > 3) {
+      const slicedStrengthsList = formsList.slice(0, 3);
 
       const newFormsList = expandForms ? formsList : slicedStrengthsList;
       const expandText = expandForms ? "hide..." : "more...";
+
       //   console.log("new strenths list", slicedStrengthsList);
+
       return (
         <div>
-          {newFormsList.map((each) => (
-            <button key={each} onClick={this.onClickFormButton} value={each}>
-              {each}
-            </button>
-          ))}
-          <button type="button" onClick={this.onClickExpandableButton}>
+          {newFormsList.map((each) => {
+            const selectedButtonCss = forms === each ? "active-css" : "";
+            return (
+              <button
+                key={each}
+                className={`${selectedButtonCss}`}
+                onClick={this.onClickFormButton}
+                value={each}
+              >
+                {each}
+              </button>
+            );
+          })}
+          <button
+            type="button"
+            className="more-hide-button"
+            onClick={this.onClickExpandableButton}
+          >
             {expandText}
           </button>
         </div>
@@ -224,9 +305,19 @@ class CapsuleItem extends Component {
     }
     return (
       <div>
-        {formsList.map((each) => (
-          <button key={each}>{each}</button>
-        ))}
+        {formsList.map((each) => {
+          const selectedButtonCss = each === forms ? "active-css" : "";
+          return (
+            <button
+              key={each}
+              onClick={this.onClickFormButton}
+              className={`${selectedButtonCss}`}
+              value={each}
+            >
+              {each}
+            </button>
+          );
+        })}
       </div>
     );
   };
@@ -239,19 +330,59 @@ class CapsuleItem extends Component {
   );
 
   returnPackageButtons = () => {
-    const { packagesList } = this.state;
-    return packagesList.length !== 0
-      ? packagesList.map((each) => (
+    const { packagesList, expandPackage, selectedPackage } = this.state;
+    if (packagesList.length > 3) {
+      const slicedStrengthsList = packagesList.slice(0, 3);
+
+      const newStrengthsList = expandPackage
+        ? packagesList
+        : slicedStrengthsList;
+      const expandText = expandPackage ? "hide..." : "more...";
+      //   console.log("new strenths list", slicedStrengthsList);
+      return (
+        <div>
+          {newStrengthsList.map((each) => {
+            const selectedCss = each === selectedPackage ? "active-css" : "";
+
+            return (
+              <button
+                key={each}
+                type="button"
+                value={each}
+                className={`${selectedCss}`}
+                onClick={this.onClickPackageButton}
+              >
+                {each}
+              </button>
+            );
+          })}
           <button
             type="button"
-            value={each}
-            key={each}
-            onClick={this.onClickPackageButtons}
+            className="more-hide-button"
+            onClick={this.onClickPageExpandButton}
           >
-            {each}
+            {expandText}
           </button>
-        ))
-      : "";
+        </div>
+      );
+    }
+    return (
+      <div>
+        {packagesList.map((each) => {
+          const selectedCss = each === selectedPackage ? "active-css" : "";
+          return (
+            <button
+              key={each}
+              className={`${selectedCss}`}
+              onClick={this.onClickPackageButton}
+              value={each}
+            >
+              {each}
+            </button>
+          );
+        })}
+      </div>
+    );
   };
 
   returnPackages = () => (
@@ -262,35 +393,25 @@ class CapsuleItem extends Component {
   );
 
   returnAvailability = () => {
-    const { selectedPackage, selectedStrength, forms, eachItem } = this.state;
-    // const { salt_forms_json } = eachItem;
-    // const result = Object.keys(salt_forms_json);
-    // const filteredList1 = result.map((each) => {
-    //   if (each === forms) {
-    //     return salt_forms_json[each];
-    //   }
-    //   return "";
-    // });
+    const { lowestPriceAndAvailability } = this.state;
+    const [priceList, isAvailable] = lowestPriceAndAvailability;
 
-    // // console.log("filteredlist1", filteredList1);
-    // let requiredData = null;
-    // for (let each of filteredList1) {
-    //   if (each !== "") {
-    //     for (const [key, value] of Object.entries(each)) {
-    //       //   console.log(key === selectedStrength);
-    //       if (key === selectedStrength) {
-    //         for (const [nkey, nvalue] of Object.entries(value)) {
-
-    //           if (nkey === selectedPackage){
-    //         console.log("nkey", nkey, "nvalue", nvalue);
-    //           }
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
-
-    return <h1>hi</h1>;
+    return (
+      <div>
+        {!isAvailable ? (
+          <div className="available-container">
+            <h1>
+              From ₹
+              {priceList !== undefined && priceList.sort((a, b) => a - b)[0]}
+            </h1>
+          </div>
+        ) : (
+          <div className="not-available-container">
+            <p>No stores selling this product near you</p>
+          </div>
+        )}
+      </div>
+    );
   };
 
   render() {
@@ -303,13 +424,12 @@ class CapsuleItem extends Component {
           <div className="forms-containers">{this.returnStrengths()}</div>
           <div className="forms-containers">{this.returnPackages()}</div>
         </div>
-        <div>
+        <div className="middle-container">
           <h1>{salt}</h1>
-          <div>
-            <p>
-              {forms} | {selectedStrength} | {selectedPackage}
-            </p>
-          </div>
+
+          <p>
+            {forms} | {selectedStrength} | {selectedPackage}
+          </p>
         </div>
         <div>{this.returnAvailability()}</div>
       </li>

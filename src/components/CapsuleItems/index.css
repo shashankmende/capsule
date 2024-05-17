@@ -1,9 +1,11 @@
 li {
+  background-image: linear-gradient(to right, #fafcfa, #c5e8cb);
   background-color: #ffffff;
   padding: 20px;
   border-radius: 20px;
   display: flex;
   flex-direction: row;
+  justify-content: space-between;
   align-items: center;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   margin-bottom: 20px;
@@ -13,6 +15,7 @@ li {
 .forms-containers {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   width: 400px;
 }
 
@@ -46,4 +49,69 @@ button {
   display: flex;
   align-items: flex-start;
   margin-bottom: 15px;
+
+  width: 350px;
+}
+
+.items-strengths-container p {
+}
+
+.available-container h1 {
+  color: #000000;
+  font-weight: bold;
+  font-size: 25px;
+  font-family: sans-serif;
+}
+
+.not-available-container {
+  background-color: #ffffff;
+  width: 300px;
+  border: 1px solid #95c3de;
+  padding: 20px;
+  text-align: center;
+}
+
+.not-available-container p {
+  height: 36px;
+  top: 11.5px;
+  left: 14.79px;
+  gap: 0px;
+  opacity: 0px;
+  font-family: sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 18px;
+  text-align: center;
+  color: accent;
+}
+
+.middle-container {
+  text-align: center;
+}
+
+.middle-container h1 {
+  font-size: 22px;
+  font-family: sans-serif;
+  font-weight: bold;
+  color: #000000;
+  text-align: center;
+}
+
+.middle-container p {
+  text-align: center;
+  font-size: 18px;
+  color: blue;
+  font-weight: 300;
+}
+
+.more-hide-button {
+  border: none;
+  color: blue;
+  font-weight: bold;
+  font-size: 20px;
+}
+
+.active-css {
+  border: 1px solid green;
+  box-shadow: 5px 1px 2px 3px green;
 }
